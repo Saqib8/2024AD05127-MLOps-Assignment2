@@ -157,10 +157,16 @@ unready instead of restart looping, and the failure shows up in one place.
 ### The image
 
 Two stage build. The first stage compiles wheels, the second copies only the
-installed packages, so no build toolchain ships in the final image. torch comes
-from the CPU wheel index, which is around 200 MB instead of the 2.5 GB CUDA
-build, because serving does not use the GPU. The container runs as uid 10001,
-not root, and has a Docker healthcheck on `/health`.
+installed packages, so no build toolchain ships in the final image. torch is
+pulled from the CPU wheel index rather than PyPI, because the default wheel is
+the CUDA build and serving never touches the GPU. The container runs as uid
+10001, not root, and has a Docker healthcheck on `/health`.
+
+The image lands at about 1.5 GB. Most of that is torch itself, roughly 1 GB
+unpacked for libtorch and the maths kernels, and there is no way around it
+while the model is served through torch. Exporting to ONNX and serving with
+onnxruntime would cut it to around 300 MB, which is the obvious next step if
+image size ever became a real constraint.
 
 ```bash
 docker build -t catdog-api:local .
