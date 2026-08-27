@@ -1,7 +1,7 @@
 # MLOps Assignment 2, Requirements and Evidence
 
 **Course:** MLOps (S1-25_AIMLCZG523)
-**Name:** Saqib
+**Name:** Mohammad Saqib Koti
 **Roll number:** 2024AD05127
 **Repository:** https://github.com/Saqib8/2024AD05127-MLOps-Assignment2
 **Container image:** `ghcr.io/saqib8/2024ad05127-mlops-assignment2`

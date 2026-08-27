@@ -7,7 +7,7 @@ data versioning with DVC, experiment tracking with MLflow, a FastAPI inference
 service, a Docker image published to GitHub Container Registry by CI, automatic
 deployment to Kubernetes by CD, and request metrics on the running service.
 
-**Name:** Saqib
+**Name:** Mohammad Saqib Koti
 **Roll number:** 2024AD05127
 
 ## What is in here
