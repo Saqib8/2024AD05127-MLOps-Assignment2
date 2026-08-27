@@ -20,7 +20,12 @@ from pathlib import Path
 
 import requests
 
-from src import config
+# running this as `python scripts/monitor_batch.py` puts scripts/ on the path
+# rather than the project root, so src would not import. Fix that here so the
+# command in the README works from a plain shell.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src import config  # noqa: E402
 
 
 def gather_samples(test_dir: Path, limit: int, seed: int = 13) -> list:

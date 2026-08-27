@@ -1,0 +1,22 @@
+{
+  "base_url": "http://localhost:8000",
+  "checked_at": "2026-08-27 17:07:19",
+  "requests_sent": 100,
+  "requests_answered": 100,
+  "requests_failed": 0,
+  "live_accuracy": 0.91,
+  "correct": 91,
+  "latency_ms": {
+    "mean": 61.2,
+    "median": 39.4,
+    "p95": 103.1,
+    "max": 1282.6
+  },
+  "confusion": {
+    "cat predicted as cat": 43,
+    "cat predicted as dog": 7,
+    "dog predicted as cat": 2,
+    "dog predicted as dog": 48
+  },
+  "failures": []
+}
