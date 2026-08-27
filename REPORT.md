@@ -65,8 +65,19 @@ those unchanged.
 
 ### 1. Data and code versioning
 
-**Git** holds the project structure and all scripts. Six commits on `main`, each
-one authored, no generated code committed without review.
+**Git** holds the project structure, the scripts and the notebook, which is the
+three things the brief names. Commits on `main` are individually scoped rather
+than one bulk drop.
+
+The notebook is `notebooks/01_eda_and_pipeline.ipynb`, committed with its
+outputs so it can be read without rerunning. It covers the exploratory work:
+class balance, a full scan of all 25,000 files for unreadable ones, the
+dimension and aspect ratio distributions behind the choice to resize rather
+than pad, the split verified against the manifest, the augmentation shown
+visually, the parameter budget per block, the training curves, predictions on
+held out images, and the post deployment comparison. It reads the real
+artifacts rather than restating numbers, so rerunning it after a retrain
+updates every figure.
 
 **DVC 3.67.1** versions the data. `dvc init` created `.dvc/config`, pointing at
 a local directory remote at `../dvcstore-catdog`.
@@ -95,7 +106,8 @@ stages:
   train:    data/processed + src/*.py                    ->  models/cats_dogs_cnn.pt
 ```
 
-**Files:** `.dvc/config`, `dvc.yaml`, `dvc.lock`, `data/raw.dvc`, `.gitignore`
+**Files:** `.dvc/config`, `dvc.yaml`, `dvc.lock`, `data/raw.dvc`, `.gitignore`,
+`notebooks/01_eda_and_pipeline.ipynb`
 
 ### 2. Model building
 
@@ -511,6 +523,7 @@ which is the hook a scheduled job or an alert would use.
 | Required | Provided |
 |---|---|
 | All source code | `src/`, `api/`, `tests/`, `scripts/` |
+| Notebook | `notebooks/01_eda_and_pipeline.ipynb`, executed with outputs |
 | DVC configuration | `.dvc/config`, `dvc.yaml`, `dvc.lock`, `data/raw.dvc` |
 | CI/CD configuration | `.github/workflows/ci.yml`, `.github/workflows/cd.yml` |
 | Docker configuration | `Dockerfile`, `.dockerignore`, `docker-compose.yml` |
