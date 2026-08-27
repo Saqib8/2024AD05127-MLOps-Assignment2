@@ -1,0 +1,27 @@
+# Training and experiment tracking environment.
+# Versions are pinned so a rerun months from now produces the same pipeline.
+# Install the CUDA build of torch separately if you want GPU training:
+#   pip install torch==2.13.0 torchvision==0.28.0 --index-url https://download.pytorch.org/whl/cu126
+
+torch==2.13.0
+torchvision==0.28.0
+numpy==2.4.6
+pillow==11.3.0
+scikit-learn==1.9.0
+matplotlib==3.10.9
+mlflow==3.14.0
+
+# serving, kept here too so one env can train and run the API locally
+fastapi==0.139.0
+uvicorn==0.51.0
+python-multipart==0.0.32
+pydantic==2.13.4
+prometheus-client==0.25.0
+requests==2.34.2
+
+# data versioning
+dvc==3.67.1
+
+# tests
+pytest==9.1.1
+httpx==0.28.1

@@ -1,0 +1,121 @@
+name: CD
+
+# Fires automatically once CI finishes successfully on main. It pulls the
+# image that CI just published, brings up a kind cluster, applies the
+# Kubernetes manifests and runs the post deploy smoke test. If the smoke test
+# fails the whole deployment is rolled back and the run goes red.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NAMESPACE: catdog
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes and verify
+    # workflow_dispatch has no conclusion, so allow it through as well
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Work out which image to deploy
+        id: image
+        run: |
+          REPO=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          SHORT=$(echo "$SHA" | cut -c1-7)
+          echo "reference=${{ env.REGISTRY }}/${REPO}:sha-${SHORT}" >> "$GITHUB_OUTPUT"
+          echo "fallback=${{ env.REGISTRY }}/${REPO}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Create the kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: catdog
+          config: k8s/kind-cluster.yaml
+
+      - name: Log in to the registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull the published image and load it into kind
+        run: |
+          IMAGE="${{ steps.image.outputs.reference }}"
+          if ! docker pull "$IMAGE"; then
+            echo "$IMAGE not found, falling back to latest"
+            IMAGE="${{ steps.image.outputs.fallback }}"
+            docker pull "$IMAGE"
+          fi
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          # kind nodes have their own containerd, images have to be sideloaded
+          kind load docker-image "$IMAGE" --name catdog
+
+      - name: Apply the manifests
+        run: |
+          kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n "$NAMESPACE" apply -f k8s/deployment.yaml
+          kubectl -n "$NAMESPACE" apply -f k8s/service.yaml
+          # point the deployment at the exact image this run published
+          kubectl -n "$NAMESPACE" set image deployment/catdog-api api="$IMAGE"
+          kubectl -n "$NAMESPACE" get deployment,service,pods
+
+      - name: Wait for the rollout
+        run: |
+          if ! kubectl -n "$NAMESPACE" rollout status deployment/catdog-api --timeout=300s; then
+            echo "rollout did not finish, dumping state"
+            kubectl -n "$NAMESPACE" get pods -o wide
+            kubectl -n "$NAMESPACE" describe deployment catdog-api
+            kubectl -n "$NAMESPACE" logs -l app=catdog-api --tail=200 --all-containers || true
+            exit 1
+          fi
+          kubectl -n "$NAMESPACE" get pods -o wide
+
+      - name: Set up Python for the smoke test
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run the post deploy smoke test
+        run: |
+          pip install requests==2.34.2 pillow==11.3.0
+          kubectl -n "$NAMESPACE" port-forward service/catdog-api 8080:80 &
+          PORT_FORWARD_PID=$!
+          sleep 5
+          python scripts/smoke_test.py --base-url http://localhost:8080 --timeout 180
+          kill $PORT_FORWARD_PID || true
+
+      - name: Roll back if the smoke test failed
+        if: failure()
+        run: |
+          echo "smoke test failed, undoing the rollout"
+          kubectl -n "$NAMESPACE" rollout undo deployment/catdog-api || true
+          kubectl -n "$NAMESPACE" get pods
+          kubectl -n "$NAMESPACE" logs -l app=catdog-api --tail=200 --all-containers || true
+
+      - name: Collect the deployment state for the report
+        if: always()
+        run: |
+          {
+            echo "### Deployment"
+            echo ""
+            echo "Image: \`$IMAGE\`"
+            echo ""
+            echo '```'
+            kubectl -n "$NAMESPACE" get deployment,service,pods 2>&1
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

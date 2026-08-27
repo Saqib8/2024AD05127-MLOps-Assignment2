@@ -1,0 +1,9 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # maps the NodePort out to localhost so the smoke test can curl it
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP

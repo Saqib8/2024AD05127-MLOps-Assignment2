@@ -1,0 +1,116 @@
+name: CI
+
+# Runs on every push and every pull request. Tests first, and the image is
+# only built and published once the tests are green.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # CPU wheels only, the runner has no GPU and the CUDA build is 2.5 GB
+          pip install --index-url https://download.pytorch.org/whl/cpu \
+            torch==2.13.0 torchvision==0.28.0
+          pip install -r requirements.txt
+
+      - name: Show the installed versions
+        run: pip list
+
+      - name: Run pytest
+        run: python -m pytest --junitxml=test-results.xml
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+          retention-days: 14
+
+  build-and-push:
+    name: Build and publish the image
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Work out the image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=pr
+
+      - name: Build the image and push it
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          # only publish from real branches, a fork PR has no registry access
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test the freshly built image
+        run: |
+          IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "starting $IMAGE"
+          docker run -d --name ci-check -p 8000:8000 "$IMAGE"
+          pip install requests pillow
+          python scripts/smoke_test.py --base-url http://localhost:8000 --timeout 120
+          docker logs ci-check
+          docker rm -f ci-check
+
+      - name: Report what was published
+        if: github.event_name != 'pull_request'
+        run: |
+          {
+            echo "### Image published"
+            echo ""
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,30 @@
+# DVC pipeline. Running `dvc repro` rebuilds only the stages whose
+# dependencies actually changed, so editing the model code does not force a
+# full re-preprocess of 25000 images.
+stages:
+  prepare:
+    cmd: python -m src.data_prep --raw-dir data/raw --processed-dir data/processed
+    deps:
+      - data/raw
+      - src/data_prep.py
+      - src/config.py
+    outs:
+      - data/processed
+
+  train:
+    cmd: python -m src.train --epochs 12 --batch-size 32
+    deps:
+      - data/processed
+      - src/train.py
+      - src/model.py
+      - src/dataset.py
+      - src/config.py
+    outs:
+      - models/cats_dogs_cnn.pt:
+          cache: false
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    plots:
+      - reports/history.json:
+          cache: false

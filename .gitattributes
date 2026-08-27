@@ -1,0 +1,6 @@
+# Keep LF in the repository. The CI runners are Linux and CRLF in a shell
+# script or a Dockerfile breaks them in confusing ways.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pt binary

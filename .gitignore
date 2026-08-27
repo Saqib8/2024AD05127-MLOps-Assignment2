@@ -1,0 +1,27 @@
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# data is tracked by DVC, not git
+/data/raw/
+/data/processed/
+*.zip
+
+# the trained checkpoint IS committed on purpose: it is only a few MB and the
+# Docker build in CI needs it. The dataset is the large thing, DVC handles that.
+
+# mlflow local file store
+/mlruns/
+
+# local secrets, never commit these
+.env
+kaggle.json
+.kaggle/
+
+# os noise
+Thumbs.db
+.DS_Store

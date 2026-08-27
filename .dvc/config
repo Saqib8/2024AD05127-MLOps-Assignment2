@@ -1,0 +1,5 @@
+[core]
+    remote = localstore
+    autostage = true
+['remote "localstore"']
+    url = ../../dvcstore-catdog
