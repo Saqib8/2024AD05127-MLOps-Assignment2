@@ -23,6 +23,10 @@ RANDOM_SEED = 42
 
 # training defaults, overridable from the CLI
 BATCH_SIZE = 32
+# 4 loader workers roughly doubles throughput: decoding and augmenting
+# JPEGs on one thread starves the GPU. Measured 70 img/s at 0 workers
+# against 167 at 4, with no further gain at 8.
+NUM_WORKERS = 4
 EPOCHS = 12
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4

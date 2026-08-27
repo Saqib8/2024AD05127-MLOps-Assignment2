@@ -12,7 +12,7 @@ stages:
       - data/processed
 
   train:
-    cmd: python -m src.train --epochs 12 --batch-size 32
+    cmd: python -m src.train --epochs 12 --batch-size 32 --num-workers 4
     deps:
       - data/processed
       - src/train.py

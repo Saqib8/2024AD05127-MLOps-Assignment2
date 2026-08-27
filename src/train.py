@@ -271,7 +271,7 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=config.LEARNING_RATE)
     parser.add_argument("--weight-decay", type=float, default=config.WEIGHT_DECAY)
     parser.add_argument("--dropout", type=float, default=0.3)
-    parser.add_argument("--num-workers", type=int, default=0)
+    parser.add_argument("--num-workers", type=int, default=config.NUM_WORKERS)
     parser.add_argument("--device", default="auto")
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--tracking-uri", default="file:./mlruns")
