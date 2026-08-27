@@ -29,7 +29,7 @@ jobs:
       packages: read
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Work out which image to deploy
         id: image
@@ -47,7 +47,7 @@ jobs:
           config: k8s/kind-cluster.yaml
 
       - name: Log in to the registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -86,7 +86,7 @@ jobs:
           kubectl -n "$NAMESPACE" get pods -o wide
 
       - name: Set up Python for the smoke test
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
