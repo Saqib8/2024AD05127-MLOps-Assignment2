@@ -1,11 +1,11 @@
 # MLOps Assignment 2, Requirements and Evidence
 
-**Course:** MLOps (S1-25_AIMLCZG523)
-**Name:** Mohammad Saqib Koti
-**Roll number:** 2024AD05127
-**Repository:** https://github.com/Saqib8/2024AD05127-MLOps-Assignment2
-**Container image:** `ghcr.io/saqib8/2024ad05127-mlops-assignment2`
-**Use case:** binary image classification, cats against dogs, for a pet adoption platform
+**Course:** MLOps (S1-25_AIMLCZG523)  
+**Name:** Mohammad Saqib Koti  
+**Roll number:** 2024AD05127  
+**Repository:** https://github.com/Saqib8/2024AD05127-MLOps-Assignment2  
+**Container image:** `ghcr.io/saqib8/2024ad05127-mlops-assignment2`  
+**Use case:** binary image classification, cats against dogs, for a pet adoption platform  
 
 This document maps every requirement in the brief to the file that satisfies it
 and the evidence that it works. Every number quoted here came from an actual
@@ -184,6 +184,10 @@ Confusion matrix on the 2,500 image test split:
 
 Errors are near symmetric, 101 against 127, so the model carries no meaningful
 bias toward either class.
+
+![Training and validation curves over 12 epochs](reports/training_curves.png)
+
+![Confusion matrix on the test split](reports/confusion_matrix.png)
 
 **An honest note on the training curve.** Validation loss was still falling at
 epoch 12, the final epoch, and the best checkpoint is that last epoch. This
@@ -524,6 +528,7 @@ which is the hook a scheduled job or an alert would use.
 |---|---|
 | All source code | `src/`, `api/`, `tests/`, `scripts/` |
 | Notebook | `notebooks/01_eda_and_pipeline.ipynb`, executed with outputs |
+| This document | `REPORT.md` and `REPORT.pdf` |
 | DVC configuration | `.dvc/config`, `dvc.yaml`, `dvc.lock`, `data/raw.dvc` |
 | CI/CD configuration | `.github/workflows/ci.yml`, `.github/workflows/cd.yml` |
 | Docker configuration | `Dockerfile`, `.dockerignore`, `docker-compose.yml` |

@@ -37,6 +37,7 @@ INCLUDE_DIRS = [
 INCLUDE_FILES = [
     "README.md",
     "REPORT.md",
+    "REPORT.pdf",
     "Dockerfile",
     ".dockerignore",
     "docker-compose.yml",
