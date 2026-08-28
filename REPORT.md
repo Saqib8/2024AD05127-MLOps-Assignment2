@@ -15,13 +15,13 @@ run, not an estimate.
 
 ## Summary
 
-| Module | Requirement | Marks | Status |
-|---|---|---|---|
-| M1 | Model development and experiment tracking | 10 | Complete |
-| M2 | Model packaging and containerization | 10 | Complete |
-| M3 | CI pipeline for build, test and image creation | 10 | Complete |
-| M4 | CD pipeline and deployment | 10 | Complete |
-| M5 | Monitoring, logs and final submission | 10 | Complete |
+| Module | Requirement | Status |
+|---|---|---|
+| M1 | Model development and experiment tracking | Complete |
+| M2 | Model packaging and containerization | Complete |
+| M3 | CI pipeline for build, test and image creation | Complete |
+| M4 | CD pipeline and deployment | Complete |
+| M5 | Monitoring, logs and final submission | Complete |
 
 Headline results:
 
@@ -354,13 +354,13 @@ registry access.
 Before the job is allowed to go green, the freshly built image is started and
 hit with the smoke test.
 
-**Evidence, CI run 33065652256:** both jobs green in 3m09s, 40/40 tests passed,
-image published with all three tags, and the container smoke test returned
-`cat 0.9618` in 46 ms.
+**Evidence, CI run 33164168543:** both jobs green in 2m06s, 40/40 tests passed,
+image published with all three tags, and the container smoke test classified
+both bundled samples correctly, `cat` at 0.7808 in 64 ms and `dog` at 0.9770.
 
 ![GitHub Actions CI run with both jobs passing](reports/screenshots/github_actions_ci.png)
 
-*Figure 6: CI run 33065652256. Unit tests and the build both green, with the
+*Figure 6: CI run 33164168543. Unit tests and the build both green, with the
 JUnit report and the build record kept as artifacts.*
 
 Local test run:
@@ -416,20 +416,20 @@ The job:
 because the CI run before it had failed. CD does not run on a failed build. That
 is the deployment gate doing its job, observed rather than asserted.
 
-**Evidence of a successful deploy, CD run 33065889252**, green in 2m08s:
+**Evidence of a successful deploy, CD run 33164302052**, green in 2m07s:
 
 ```
-Image: ghcr.io/saqib8/2024ad05127-mlops-assignment2:sha-db5a828
+Image: ghcr.io/saqib8/2024ad05127-mlops-assignment2:sha-5d255ba
   loading into node "catdog-control-plane"...
 deployment.apps/catdog-api created
-service/catdog-api  NodePort  10.96.250.134  80:30080/TCP
+service/catdog-api  NodePort  10.96.23.176  80:30080/TCP
 deployment "catdog-api" successfully rolled out
 [smoke] all checks passed
 ```
 
 ![GitHub Actions CD run deploying to Kubernetes](reports/screenshots/github_actions_cd.png)
 
-*Figure 7: CD run 33065889252, triggered automatically by the CI run above
+*Figure 7: CD run 33164302052, triggered automatically by the CI run above
 finishing successfully on main.*
 
 The same manifests were also applied to Docker Desktop's Kubernetes locally,
@@ -598,7 +598,7 @@ which is the hook a scheduled job or an alert would use.
 
 ## Deliverables
 
-### 1. Zip containing source code, configuration and model artifacts
+### Zip containing source code, configuration and model artifacts
 
 | Required | Provided |
 |---|---|
@@ -615,11 +615,6 @@ which is the hook a scheduled job or an alert would use.
 
 The dataset itself is not in the zip. That is the point of DVC: the pointer
 files and `.dvc/config` are included, and `dvc pull` restores the images.
-
-### 2. Screen recording under 5 minutes
-
-To be recorded, showing a code change flowing through CI to a deployed
-prediction.
 
 ---
 
