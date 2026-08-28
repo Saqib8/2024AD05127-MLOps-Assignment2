@@ -1,16 +1,16 @@
 {
   "base_url": "http://localhost:8000",
-  "checked_at": "2026-08-27 17:07:19",
+  "checked_at": "2026-08-28 14:57:06",
   "requests_sent": 100,
   "requests_answered": 100,
   "requests_failed": 0,
   "live_accuracy": 0.91,
   "correct": 91,
   "latency_ms": {
-    "mean": 61.2,
-    "median": 39.4,
-    "p95": 103.1,
-    "max": 1282.6
+    "mean": 45.1,
+    "median": 36.6,
+    "p95": 60.7,
+    "max": 418.5
   },
   "confusion": {
     "cat predicted as cat": 43,

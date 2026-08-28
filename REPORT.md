@@ -165,6 +165,18 @@ curves**, plus `metrics.json` and the checkpoint itself.
 
 View with `mlflow ui --backend-store-uri file:./mlruns --port 5000`.
 
+![MLflow training runs for the cats-vs-dogs experiment](reports/screenshots/mlflow_experiment_runs.png)
+
+*Figure 1: The three tracked runs. The 42 minute run is the real one, the two
+short ones are the smoke runs used to validate the pipeline before committing
+to a long job.*
+
+![MLflow run detail showing logged metrics and parameters](reports/screenshots/mlflow_run_detail.png)
+
+*Figure 2: Run detail for `baseline-cnn-12ep`. Eleven metrics and fourteen
+parameters logged, along with the source file and the git commit the run came
+from.*
+
 **Final metrics** (`reports/metrics.json`):
 
 | Metric | Value |
@@ -187,7 +199,11 @@ bias toward either class.
 
 ![Training and validation curves over 12 epochs](reports/training_curves.png)
 
+*Figure 3: Loss and accuracy per epoch, logged as an MLflow artifact.*
+
 ![Confusion matrix on the test split](reports/confusion_matrix.png)
+
+*Figure 4: Confusion matrix on the 2,500 image test split.*
 
 **An honest note on the training curve.** Validation loss was still falling at
 epoch 12, the final epoch, and the best checkpoint is that last epoch. This
@@ -227,6 +243,11 @@ which covers both options the brief allows:
   "filename": "sample_dog.jpg"
 }
 ```
+
+![Swagger UI listing the five endpoints](reports/screenshots/swagger_ui.png)
+
+*Figure 5: The generated OpenAPI documentation at `/docs`, listing all five
+endpoints.*
 
 A design decision worth stating: if the checkpoint is missing, the container
 still starts and `/health` returns 503 with the reason, rather than crashing.
@@ -337,6 +358,17 @@ hit with the smoke test.
 image published with all three tags, and the container smoke test returned
 `cat 0.9618` in 46 ms.
 
+![GitHub Actions CI run with both jobs passing](reports/screenshots/github_actions_ci.png)
+
+*Figure 6: CI run 33065652256. Unit tests and the build both green, with the
+JUnit report and the build record kept as artifacts.*
+
+Local test run:
+
+```
+======================== 40 passed, 1 warning in 8.84s ========================
+```
+
 **Files:** `.github/workflows/ci.yml`, `tests/`, `pytest.ini`, `conftest.py`
 
 ---
@@ -394,6 +426,30 @@ service/catdog-api  NodePort  10.96.250.134  80:30080/TCP
 deployment "catdog-api" successfully rolled out
 [smoke] all checks passed
 ```
+
+![GitHub Actions CD run deploying to Kubernetes](reports/screenshots/github_actions_cd.png)
+
+*Figure 7: CD run 33065889252, triggered automatically by the CI run above
+finishing successfully on main.*
+
+The same manifests were also applied to Docker Desktop's Kubernetes locally,
+which is what the demo uses:
+
+```
+$ kubectl -n catdog get deployment,service,pods
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/catdog-api   2/2     2            2           18m
+
+NAME                 TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/catdog-api   NodePort   10.96.173.211   <none>        80:30080/TCP   18m
+
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/catdog-api-7b997c4dc6-fzwdx   1/1     Running   0          18m
+pod/catdog-api-7b997c4dc6-xld5m   1/1     Running   0          18m
+```
+
+Both replicas ready, and the smoke test passes against the NodePort on 30080.
 
 ### 3. Smoke tests and health check
 
@@ -464,9 +520,29 @@ docker compose up -d --build
 
 API on 8000, Prometheus on 9090, Grafana on 3000.
 
-**Verified live.** Prometheus reports the target as `health=up` and holds real
-data: `predictions_total{cat}=45`, `predictions_total{dog}=55`,
-`model_loaded=1`, 108 total requests.
+**Verified live.**
+
+![Prometheus targets page showing the API scrape target up](reports/screenshots/prometheus_targets.png)
+
+*Figure 8: Prometheus scraping `http://api:8000/metrics`, state UP, scrape
+duration around 4 ms.*
+
+![Grafana dashboard with request rate, latency percentiles and prediction split](reports/screenshots/grafana_dashboard.png)
+
+*Figure 9: The provisioned Grafana dashboard after a 100 image batch. Latency
+percentiles show the burst, the pie chart shows the cat against dog split, and
+the error rate stays at zero.*
+
+The stack running behind those two figures:
+
+```
+$ docker compose ps
+
+NAME                STATUS                  PORTS
+catdog-api          Up 22 hours (healthy)   0.0.0.0:8000->8000/tcp
+catdog-grafana      Up 7 minutes            0.0.0.0:3000->3000/tcp
+catdog-prometheus   Up 22 hours             0.0.0.0:9090->9090/tcp
+```
 
 ### 2. Model performance tracking, post deployment
 
